@@ -1,0 +1,40 @@
+Sub Excel_Sheet_Merger()
+Application.DisplayAlerts = False
+Application.ScreenUpdating = False
+Application.Calculation = xlCalculationManual
+
+    Dim OpenWB, NewWB As Workbook
+    Dim MyPath, Extn, Myfile As String
+    
+    'Read each file from folder
+        MyPath = "D:\Alab TechnoSoft\Excel_Macro\Input Files\"
+        Extn = "*.xlsx"
+        Myfile = Dir(MyPath & Extn)
+        Set NewWB = Workbooks.Add
+    'Get no of worksheet in excel file
+        Do While Myfile <> ""
+            Set OpenWB = Workbooks.Open(Filename:=MyPath & Myfile)
+            OpenWB.Activate
+            'For loop to write sheet name in last column
+                For i = 1 To OpenWB.Worksheets.Count
+                    For j = 2 To OpenWB.Worksheets(i).UsedRange.Rows.Count
+                        OpenWB.Worksheets(i).Cells(j, 7).Value = OpenWB.Worksheets(i).Name
+                    Next j
+                    'Copy data from one sheet to new worksheet
+                       OpenWB.Worksheets(i).UsedRange.Offset(1, 0).Copy
+                        NewWB.Sheets(1).Activate
+                        Set FirstBlank = Range("A" & Rows.Count).End(xlUp).Offset(1, 0)
+                        FirstBlank.PasteSpecial
+                Next i
+            
+            Workbooks(Myfile).Close savechanges:=False
+            Myfile = Dir
+        Loop
+
+'Thanks for watching,... Happy Learing! :)
+
+MsgBox "Task completed..", vbInformation, "Alab Technosoft!"
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+Application.Calculation = xlCalculationAutomatic
+End Sub
