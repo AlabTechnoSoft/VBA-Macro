@@ -1,0 +1,92 @@
+Option Explicit
+Dim OutPut As String
+
+'If you know From Language and To Language then it will help you guys,
+Const langCode = ("auto,en,fr,es")
+Public Enum LanguageCode 'Input Language
+    InputAuto = 0
+    InputEnglish = 1
+    InputFrench = 2
+    InputSpanish = 3 'Like wise we can add N no.of language in your code
+End Enum
+Public Enum LanguageCode2 'Output Language
+    ReturnEnglish = 1
+    ReturnFrench = 2
+    ReturnSpanish = 3
+End Enum
+'Now its time to test our code, Let's see... :)
+Sub Google_Translate()
+Application.DisplayAlerts = False
+Application.ScreenUpdating = False
+Application.Calculation = xlCalculationManual
+
+
+    'First i want to write some loop to read each headers from excel input sheet
+    Dim i, Colcnt As Integer
+    Colcnt = ActiveSheet.UsedRange.Columns.Count
+    'As you see i have 8 header's in my excel sheet
+    For i = 1 To Colcnt
+        If Cells(1, i).Value <> "" Then
+            'Now we are going to run main function
+            Call AutoTranslate(Cells(1, i), InputAuto, ReturnEnglish)
+            Cells(1, i).Value = OutPut
+            'As you see the header has changes to English
+        End If
+        'Its time to trigger F5
+    Next i
+    
+    'Hope you have learned the cool tricks,..
+    'Happy Learning.... :) be safe!
+    'See you guys in next video :)
+    
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+Application.Calculation = xlCalculationAutomatic
+End Sub
+
+'Before that please enable these 2 library in Tools -> Reference ->
+Public Function AutoTranslate(ByVal Text As String, Optional LanguageFrom As LanguageCode, Optional LanguageTo As LanguageCode2) As String
+
+'Declare the required variables
+Dim langFrom As String, langTo As String, IE As InternetExplorer, URL As String, myArray
+
+'Input language & Output language
+If IsMissing(LanguageFrom) Then
+    LanguageFrom = InputAuto
+End If
+If IsMissing(LanguageTo) Then
+    LanguageTo = ReturnEnglish
+End If
+
+'Now we are going to get out Google Transalte URL
+myArray = Split(langCode, ",")
+langFrom = myArray(LanguageFrom)
+langTo = myArray(LanguageTo)
+
+'Generate the Translate URL
+URL = "https://translate.google.com/#" & langFrom & "/" & langTo & "/" & Text
+
+'Now we are going to set browser as IE
+Set IE = New InternetExplorer
+IE.Visible = False
+IE.Navigate URL
+Do Until IE.ReadyState = 4 'This one is for identity the input textbox of google translate
+    DoEvents
+Loop
+
+Application.Wait (Now + TimeValue("0:00:5")) 'Now we are just give some time to translate the header to browser (5 milli seconds)
+
+Do Until IE.ReadyState = 4 'This one is for identity the Outputbox of google translate
+    DoEvents
+Loop
+
+'Now we are going to read the output from browser to some variable
+Dim doc As HTMLDocument
+Set doc = IE.Document
+
+'Using inspect element we can identify the output box 'Lets see
+AutoTranslate = IE.Document.getElementsByClassName("tlid-translation translation")(0).innerText
+OutPut = AutoTranslate
+IE.Quit
+Set IE = Nothing
+End Function
