@@ -1,0 +1,65 @@
+Sub PDFConverter()
+Application.DisplayAlerts = False
+Application.ScreenUpdating = False
+Application.Calculation = xlCalculationManual
+
+    'Declaration of Variabless
+    Dim WB_Inp As Workbook
+    Dim WBInp_DataSht, WBInp_TempSht As Worksheet
+    Dim lastRow As Long
+    Dim FileName As String
+    
+    'Set values
+    Set WB_Inp = Workbooks.Open("D:\Alab TechnoSoft\Excel_Macro\PDF Input Sheet.xlsx")
+    Set WBInp_DataSht = WB_Inp.Sheets("Input_Sheet")
+    Set WBInp_TempSht = WB_Inp.Sheets("PDF_Template")
+    
+    'Clear previous data's
+    WBInp_TempSht.Range("A4:I65000").ClearContents
+            
+    'Delete all the .pdf file(s)
+    On Error Resume Next
+        Kill "D:\Alab TechnoSoft\Excel_Macro\*.pdf"
+    On Error GoTo 0
+    
+    'Actual For Loop
+    WBInp_DataSht.Activate
+    lastRow = WBInp_DataSht.Cells(Rows.Count, "F").End(xlUp).Row
+    For i = 3 To lastRow
+        If WBInp_DataSht.Cells(i, 6).Value Like "*Total*" Then 'If cell contains "Total", we have to convert till that into a single .PDF
+            FileName = Replace(WBInp_DataSht.Cells(i, 6).Value, " Total", "") 'Get PDF name from excel file
+            ActiveWorkbook.Sheets("PDF_Template").Select
+            Call CellBorder 'Excel border
+            'Convert selected sheet usedrange into a pdf format
+            ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, FileName:="D:\Alab TechnoSoft\Excel_Macro\" & FileName & ".pdf", _
+            Quality:=xlQualityStandard, IncludeDocProperties:=True, _
+            IgnorePrintAreas:=False, OpenAfterPublish:=False
+            
+            'Clear previous data for next pdf
+            WBInp_TempSht.Range("A4:I65000").ClearContents
+            WBInp_TempSht.Activate
+            
+        Else
+            WBInp_DataSht.Cells(i, 6).EntireRow.Copy 'Copy each row from raw sheet to template
+            WBInp_TempSht.Activate
+            Set FirstBlnkC = Range("A" & Rows.Count).End(xlUp).Offset(1, 0)
+            FirstBlnkC.PasteSpecial Paste:=xlValues
+        End If
+    Next i
+
+MsgBox "Task completed", vbInformation, "WiBOT - PDF Converter" 'Completed Message box
+
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+Application.Calculation = xlCalculationAutomatic
+End Sub
+Sub CellBorder()
+    Dim rng As Range
+    Set rng = Range("A3:I" & ActiveSheet.UsedRange.Rows.Count)
+    rng.Borders.LineStyle = Excel.XlLineStyle.xlLineStyleNone
+    With rng.Borders
+        .LineStyle = xlContinuous
+        .Color = vbgray
+        .Weight = xlThin
+    End With
+End Sub
